@@ -1,6 +1,7 @@
 .idea
 .venv
 *.egg-info
+__pycache__
 build
 install
 log
