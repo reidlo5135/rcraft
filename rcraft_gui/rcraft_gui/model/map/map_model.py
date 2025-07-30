@@ -9,52 +9,53 @@ from PyQt5.QtGui import QImage
 class MapModel:
 
     def __init__(self) -> None:
-        self.map_image: Optional[Image.Image] = None
-        self._np_buffer: Optional[np.ndarray] = None
-        self.map_path: Optional[str] = None
+        self.mapImage: Optional[Image.Image] = None
+        self.mapImagePath: Optional[str] = None
+        self.mapResolution: float = 1.0
+        self.mapOrigin: tuple[float, float] = (0.0, 0.0)
 
-    def load_map_from_path(self, path: str) -> bool:
+    def loadMapFromPath(self, path: str) -> bool:
         if not os.path.exists(path):
             print(f"[ERROR][MapModel] File does not exist : {path}")
             return False
 
-        ext: str = os.path.splitext(path)[1].lower()
-        print(f"[INFO][MapModel] Loaded Map Image : {path}, {ext}")
+        mapExtension: str = os.path.splitext(path)[1].lower()
+        print(f"[INFO][MapModel] Loaded Map Image : {path}, {mapExtension}")
 
         try:
-            if ext == ".pgm":
-                gray_img: cv2.Mat | np.ndarray[Any, np.dtype] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+            if mapExtension == ".pgm":
+                grayImage: cv2.Mat | np.ndarray[Any, np.dtype] = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
 
-                if gray_img is None:
+                if grayImage is None:
                     raise IOError("OpenCV failed to load PGM file")
 
-                self.map_image = Image.fromarray(gray_img).convert("RGB")
+                self.mapImage = Image.fromarray(grayImage).convert("RGB")
                 print(f"[INFO][MapModel] Loaded PGM map via OpenCV: {path}")
             else:
-                self.map_image = Image.open(path).convert("RGB")
+                self.mapImage = Image.open(path).convert("RGB")
                 print(f"[INFO][MapModel] Loaded map: {path}")
 
-            self.map_path = path
+            self.mapImagePath = path
             print(f"[INFO][MapModel] Loaded map from {path}")
             return True
         except Exception as e:
             print(f"[ERROR][MapModel] Failed to load image : {e}")
             return False
 
-    def get_qimage_from_numpy(self) -> Optional[QImage]:
-        if self.map_image is None:
+    def getQImageFromNumPy(self) -> Optional[QImage]:
+        if self.mapImage is None:
             return None
 
-        rgb_image: Image = self.map_image.convert("RGB")
-        width, height = rgb_image.size
-        raw_data: bytes = rgb_image.tobytes("raw", "RGB")
-        bytes_per_line: int = 3 * width
+        rgbImage: Image = self.mapImage.convert("RGB")
+        width, height = rgbImage.size
+        rawData: bytes = rgbImage.tobytes("raw", "RGB")
+        bytesPerLine: int = 3 * width
 
-        qimage: QImage = QImage(raw_data, width, height, bytes_per_line, QImage.Format_RGB888)
+        qImage: QImage = QImage(rawData, width, height, bytesPerLine, QImage.Format_RGB888).copy()
 
-        print(f"[M] image : {qimage.size()}, {qimage.format()}")
+        print(f"[M] getQImageFromNumPy : {qImage.size()}, {qImage.format()}")
 
-        return qimage.copy()
+        return qImage
 
 
 __all__: list[str] = ["MapModel"]

@@ -10,7 +10,7 @@ authors = [
   { name = "Edwin Reidlo" }
 ]
 dependencies = [
-  "PyQt5>=5.15.0",
+  "PyQt5",
   "Pillow<=10",
   "pyyaml",
   "opencv-python",
