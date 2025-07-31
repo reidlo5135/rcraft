@@ -1,10 +1,9 @@
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
+from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5.QtGui import QGuiApplication, QScreen, QResizeEvent
 
 from rcraft_gui.view.map.map_view import MapView
 from rcraft_gui.viewmodel.map.map_viewmodel import MapViewModel
-from rcraft_gui.model.map.map_model import MapModel
 
 
 class OverlayView(QWidget):

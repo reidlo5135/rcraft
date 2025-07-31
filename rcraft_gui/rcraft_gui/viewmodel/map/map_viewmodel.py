@@ -1,4 +1,4 @@
-import os
+import platform
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QFileDialog
@@ -13,23 +13,35 @@ class MapViewModel(QObject):
     def __init__(self):
         super().__init__()
         self.model: MapModel = MapModel()
+        self.mapPath: str = ""
 
     def handleMapSelect(self) -> None:
+        selectFolderPath: str = ""
+        osType: str = platform.system()
+
+        if osType == "Windows":
+            selectFolderPath = "C:\\"
+        else:
+            selectFolderPath = "~"
+
         path, _ = QFileDialog.getOpenFileName(
             None,
             "Select Map Image or YAML",
-            os.getcwd(),
+            selectFolderPath,
             "Map Files (*.pgm *.png *.bmp *.jpg *.yaml);;All Files (*)"
         )
 
         if not path:
             return
+        else:
+            print(f"[INFO][VM] selected Map Path : {path}")
 
         success: bool = self.model.loadMapFromPath(path)
         if not success:
             print("[ERROR][VM] Failed to load map")
             return
 
+        self.mapPath = path
         qImage: QImage = self.model.getQImageFromNumPy()
 
         if qImage:

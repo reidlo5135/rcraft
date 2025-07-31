@@ -16,11 +16,11 @@ class MapModel:
 
     def loadMapFromPath(self, path: str) -> bool:
         if not os.path.exists(path):
-            print(f"[ERROR][MapModel] File does not exist : {path}")
+            print(f"[ERROR][M] File does not exist : {path}")
             return False
 
         mapExtension: str = os.path.splitext(path)[1].lower()
-        print(f"[INFO][MapModel] Loaded Map Image : {path}, {mapExtension}")
+        print(f"[INFO][M] Loaded Map Image : {path}, {mapExtension}")
 
         try:
             if mapExtension == ".pgm":
@@ -30,16 +30,16 @@ class MapModel:
                     raise IOError("OpenCV failed to load PGM file")
 
                 self.mapImage = Image.fromarray(grayImage).convert("RGB")
-                print(f"[INFO][MapModel] Loaded PGM map via OpenCV: {path}")
+                print(f"[INFO][M] Loaded PGM map via OpenCV: {path}")
             else:
                 self.mapImage = Image.open(path).convert("RGB")
-                print(f"[INFO][MapModel] Loaded map: {path}")
+                print(f"[INFO][M] Loaded map: {path}")
 
             self.mapImagePath = path
-            print(f"[INFO][MapModel] Loaded map from {path}")
+            print(f"[INFO][M] Loaded map from {path}")
             return True
         except Exception as e:
-            print(f"[ERROR][MapModel] Failed to load image : {e}")
+            print(f"[ERROR][M] Failed to load image : {e}")
             return False
 
     def getQImageFromNumPy(self) -> Optional[QImage]:
@@ -53,7 +53,7 @@ class MapModel:
 
         qImage: QImage = QImage(rawData, width, height, bytesPerLine, QImage.Format_RGB888).copy()
 
-        print(f"[M] getQImageFromNumPy : {qImage.size()}, {qImage.format()}")
+        print(f"[INFO][M] getQImageFromNumPy : {qImage.size()}, {qImage.format()}")
 
         return qImage
 
