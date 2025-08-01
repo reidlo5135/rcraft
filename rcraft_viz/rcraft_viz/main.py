@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from rcraft_gui.view.main.overlay_view import OverlayView
+from rcraft_viz.view.main.overlay_view import OverlayView
 
 class MainWindow(QMainWindow):
 

@@ -2,7 +2,7 @@ import platform
 from PyQt5.QtCore import QObject, pyqtSignal
 from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QFileDialog
-from rcraft_gui.model.map.map_model import MapModel
+from rcraft_viz.model.map.map_model import MapModel
 
 
 class MapViewModel(QObject):

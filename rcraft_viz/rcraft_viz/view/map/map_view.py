@@ -5,9 +5,9 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QPixmap, QPainter, QImage, QResizeEvent, QMouseEvent, QPen, QBrush
 from PyQt5.QtCore import Qt, QPointF, QRectF
 
-from rcraft_gui.scene.goal.goal_item import GoalItem
-from rcraft_gui.scene.robot.robot_item import RobotItem
-from rcraft_gui.viewmodel.map.map_viewmodel import MapViewModel
+from rcraft_viz.scene.goal.goal_item import GoalItem
+from rcraft_viz.scene.robot.robot_item import RobotItem
+from rcraft_viz.viewmodel.map.map_viewmodel import MapViewModel
 
 
 class MapView(QGraphicsView):
