@@ -19,7 +19,7 @@ int main(int argc, const char *const *argv)
     else
     {
         std::cout << "Path (Total " << result_path.size() << '\n';
-        for (const auto& p : result_path)
+        for (const std::pair<int, int> &p : result_path)
         {
             std::cout << "Point (" << p.first << ", " << p.second << ")" << '\n';
         }

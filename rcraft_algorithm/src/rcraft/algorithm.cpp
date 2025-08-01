@@ -43,7 +43,6 @@ void Path::load_map(const std::string &map_file_path)
     }
 }
 
-
 std::vector<std::pair<int, int>> Path::calculate_path_a_star(int start_x, int start_y, int goal_x, int goal_y)
 {
     // [0] Check for empty map
@@ -53,11 +52,13 @@ std::vector<std::pair<int, int>> Path::calculate_path_a_star(int start_x, int st
         return {};
     }
 
-    // [1] Get map dimensions
-    int h = this->map_.rows;
-    int w = this->map_.cols;
+    std::chrono::seconds();
 
-    std::cout << "A* h : " << h << ", w : " << w << '\n';
+    // [1] Get map dimensions
+    int w = this->map_.cols;
+    int h = this->map_.rows;
+
+    std::cout << "A* Map width, height (" << w << ", " << h << ")" << '\n';
     std::cout << "A* start x : " << start_x << ", y : " << start_y << '\n';
     std::cout << "A* goal x : " << goal_x << ", y : " << goal_y << '\n';
 
@@ -82,36 +83,31 @@ std::vector<std::pair<int, int>> Path::calculate_path_a_star(int start_x, int st
     std::vector<std::vector<bool>> closed(h, std::vector<bool>(w, false));
 
     // [4] Custom comparator for A* open set (priority queue)
-    auto cmp = [](Node *a, Node *b) { return a->priority > b->priority; };
-    std::priority_queue<Node *, std::vector<Node *>, decltype(cmp)> open(cmp);
+    auto cmp = [](Node::SharedPtr a, Node::SharedPtr b) { return a->priority > b->priority; };
+    std::priority_queue<Node::SharedPtr, std::vector<Node::SharedPtr>, decltype(cmp)> open(cmp);
 
-    // [5] For memory management of Node*
-    std::vector<Node*> node_gc;
-
-    // [6] Create and insert the start node
-    Node *start = new Node(start_x, start_y, 0, heuristic(start_x, start_y, goal_x, goal_y), nullptr);
+    // [5] Create and insert the start node
+    Node::SharedPtr start = std::make_shared<Node>(start_x, start_y, 0, heuristic(start_x, start_y, goal_x, goal_y), nullptr);
     open.push(start);
-    node_gc.push_back(start);
 
-    // [7] For storing goal node pointer (for path tracing)
-    Node *last = nullptr;
+    // [6] For storing goal node pointer (for path tracing)
+    Node::SharedPtr last = nullptr;
 
-    // [8] Main A* search loop
+    // [7] Main A* search loop
     while (!open.empty())
     {
-        // [9] Get the node with the lowest priority (cost + heuristic)
-        Node *cur = open.top();
+        // [8] Get the node with the lowest priority (cost + heuristic)
+        Node::SharedPtr cur = open.top();
         open.pop();
 
-        // [10] Skip if already closed (visited)
+        // [9] Skip if already closed (visited)
         if (closed[cur->y][cur->x])
         {
-            // delete cur;
             continue;
         }
         closed[cur->y][cur->x] = true;
 
-        // [11] Check if goal is reached
+        // [10] Check if goal is reached
         if (cur->x == goal_x && cur->y == goal_y)
         {
             last = cur;
@@ -119,7 +115,7 @@ std::vector<std::pair<int, int>> Path::calculate_path_a_star(int start_x, int st
             break;
         }
 
-        // [12] Explore 4-connected neighbors
+        // [11] Explore 4-connected neighbors
         static constexpr int dx[4] = {1, -1, 0, 0};
         static constexpr int dy[4] = {0, 0, 1, -1};
 
@@ -129,28 +125,28 @@ std::vector<std::pair<int, int>> Path::calculate_path_a_star(int start_x, int st
             // (0,0) : only RIGHT and DOWN
             if (cur->x == 0 && cur->y == 0 && (d == 1 || d == 3))
             {
-                std::cout << "A* LeftTop Skipping..." << '\n';
+                std::cout << "A* LT Skipping..." << '\n';
                 std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
             // (w-1,0) : only LEFT and DOWN
             if (cur->x == w - 1 && cur->y == 0 && (d == 0 || d == 3))
             {
-                std::cout << "A* RightTop Skipping..." << '\n';
+                std::cout << "A* RT Skipping..." << '\n';
                 std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
             // (0,h-1) : only RIGHT and UP
             if (cur->x == 0 && cur->y == h - 1 && (d == 1 || d == 2))
             {
-                std::cout << "A* LeftBottom Skipping..." << '\n';
+                std::cout << "A* LB Skipping..." << '\n';
                 std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
             // (w-1,h-1) : only LEFT and UP
             if (cur->x == w - 1 && cur->y == h - 1 && (d == 0 || d == 2))
             {
-                std::cout << "A* RightBottom Skipping..." << '\n';
+                std::cout << "A* RB Skipping..." << '\n';
                 std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
@@ -160,36 +156,31 @@ std::vector<std::pair<int, int>> Path::calculate_path_a_star(int start_x, int st
 
             std::cout << "==================================================" << '\n';
             std::cout << "A* Explore 4-connected pixels" << '\n';
-            std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
-            std::cout << "n x, y (" << nx << ", " << ny << ")" << '\n';
+            std::cout << "current x, y (" << cur->x << ", " << cur->y << ")" << '\n';
+            std::cout << "next x, y (" << nx << ", " << ny << ")" << '\n';
             std::cout << "==================================================" << '\n';
 
-            // [13] Skip invalid or already closed neighbors
+            // [12] Skip invalid or already closed neighbors
             if (!valid(nx, ny) || closed[ny][nx])
                 continue;
 
-            // [14] Create neighbor node and push to open list
-            Node* next = new Node(nx, ny, cur->cost + 1, cur->cost + 1 + heuristic(nx, ny, goal_x, goal_y), cur);
+            // [13] Create neighbor node and push to open list
+            Node::SharedPtr next = std::make_shared<Node>(nx, ny, cur->cost + 1, cur->cost + 1 + heuristic(nx, ny, goal_x, goal_y), cur);
             open.push(next);
-            node_gc.push_back(next);
 
-            std::cout << "[A*] OpenSet size: " << open.size() << std::endl;
+            std::cout << "A* OpenSet size: " << open.size() << std::endl;
         }
     }
 
-    // [15] Reconstruct path from goal to start using parent pointers
+    // [14] Reconstruct path from goal to start using parent pointers
     std::vector<std::pair<int, int>> path;
     while (last)
     {
         path.emplace_back(last->x, last->y);
-        last = last->parent;
+        last = std::shared_ptr<Node>(last->parent);
     }
     std::reverse(path.begin(), path.end());
 
-    // [16] Memory cleanup for all created nodes
-    for (Node *n : node_gc) delete n;
-
-    // [17] Return the path (empty if not found)
+    // [15] Return the path (empty if not found)
     return path;
 }
-

@@ -7,17 +7,19 @@
 #include <unordered_map>
 #include <memory>
 #include <iostream>
+#include <chrono>
 
 namespace rcraft::algorithm
 {
     struct Node
     {
+        using SharedPtr = std::shared_ptr<Node>;
         int x;
         int y;
         float cost;
         float priority;
-        Node *parent;
-        Node(int x, int y, float c, float p, Node *pr)
+        SharedPtr parent;
+        Node(int x, int y, float c, float p, Node::SharedPtr pr)
             : x(x), y(y), cost(c), priority(p), parent(pr) {}
     };
 
@@ -36,9 +38,7 @@ namespace rcraft::algorithm
         virtual ~Path();
 
         void load_map(const std::string &map_file_path);
-        std::vector<std::pair<int, int>> calculate_path_a_star(
-                int start_x, int start_y,
-                int goal_x, int goal_y);
+        std::vector<std::pair<int, int>> calculate_path_a_star(int start_x, int start_y, int goal_x, int goal_y);
 
     public:
         using SharedPtr = std::shared_ptr<Path>;

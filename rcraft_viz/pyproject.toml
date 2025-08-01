@@ -14,7 +14,8 @@ dependencies = [
   "Pillow<=10",
   "pyyaml",
   "opencv-python",
-  "numpy"
+  "numpy",
+  "pybind11"
 ]
 requires-python = ">=3.7"
 
