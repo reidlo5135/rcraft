@@ -1,5 +1,5 @@
-#ifndef RCRAFT_ALGORITHM_HPP
-#define RCRAFT_ALGORITHM_HPP
+#ifndef RCRAFT_GLOBAL_PLANNER_HPP
+#define RCRAFT_GLOBAL_PLANNER_HPP
 
 #include <opencv2/opencv.hpp>
 #include <queue>
@@ -9,17 +9,16 @@
 #include <iostream>
 #include <chrono>
 
-namespace rcraft::algorithm
+namespace rcraft::planner
 {
     struct Node
     {
-        using SharedPtr = std::shared_ptr<Node>;
         int x;
         int y;
         float cost;
         float priority;
-        SharedPtr parent;
-        Node(int x, int y, float c, float p, Node::SharedPtr pr)
+        Node *parent;
+        Node(int x, int y, float c, float p, Node *pr)
             : x(x), y(y), cost(c), priority(p), parent(pr) {}
     };
 
@@ -28,22 +27,21 @@ namespace rcraft::algorithm
         return std::abs(x1 - x2) + std::abs(y1 - y2);
     }
 
-    class Path final
+    class GlobalPlanner final
     {
     private:
         cv::Mat map_;
 
     public:
-        explicit Path();
-        virtual ~Path();
+        explicit GlobalPlanner();
+        virtual ~GlobalPlanner();
 
         void load_map(const std::string &map_file_path);
         std::vector<std::pair<int, int>> calculate_path_a_star(int start_x, int start_y, int goal_x, int goal_y);
 
     public:
-        using SharedPtr = std::shared_ptr<Path>;
+        using SharedPtr = std::shared_ptr<GlobalPlanner>;
     };
 }
 
-
-#endif // RCRAFT_ALGORITHM_HPP
+#endif // RCRAFT_GLOBAL_PLANNER_HPP

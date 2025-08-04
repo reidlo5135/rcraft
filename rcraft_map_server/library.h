@@ -1,0 +1,6 @@
+#ifndef RCRAFT_MAP_SERVER_LIBRARY_H
+#define RCRAFT_MAP_SERVER_LIBRARY_H
+
+void hello();
+
+#endif //RCRAFT_MAP_SERVER_LIBRARY_H

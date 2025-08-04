@@ -1,10 +1,10 @@
-#include "rcraft/algorithm.hpp"
+#include "rcraft/global_planner.hpp"
 
 int main(int argc, const char *const *argv)
 {
-    rcraft::algorithm::Path::SharedPtr path = std::make_shared<rcraft::algorithm::Path>();
+    rcraft::planner::GlobalPlanner::SharedPtr path = std::make_shared<rcraft::planner::GlobalPlanner>();
 
-    std::string map_path = "C:/mn_ws/rcraft/rcraft_maps/start.bmp";
+    std::string map_path = "C:/mn_ws/rcraft/rcraft_map_server/maps/start.bmp";
     path->load_map(map_path);
 
     int start_x = 130, start_y = 383;
