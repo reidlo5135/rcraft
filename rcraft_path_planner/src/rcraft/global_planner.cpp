@@ -43,12 +43,12 @@ void GlobalPlanner::load_map(const std::string &map_file_path)
     }
 }
 
-std::vector<std::pair<int, int>> GlobalPlanner::calculate_path_a_star(int start_x, int start_y, int goal_x, int goal_y)
+std::vector<std::pair<int, int>> GlobalPlanner::plan_by_a_star(int start_x, int start_y, int goal_x, int goal_y)
 {
     // [0] Check for empty map
     if (this->map_.empty())
     {
-        std::cerr << "A*loaded map is empty" << std::endl;
+        std::cerr << "A* loaded map is empty" << std::endl;
         return {};
     }
 
@@ -58,9 +58,9 @@ std::vector<std::pair<int, int>> GlobalPlanner::calculate_path_a_star(int start_
     int w = this->map_.cols;
     int h = this->map_.rows;
 
-    std::cout << "A*Map width, height (" << w << ", " << h << ")" << '\n';
-    std::cout << "A*start x : " << start_x << ", y : " << start_y << '\n';
-    std::cout << "A*goal x : " << goal_x << ", y : " << goal_y << '\n';
+    std::cout << "A* Map width, height (" << w << ", " << h << ")" << '\n';
+    std::cout << "A* start x : " << start_x << ", y : " << start_y << '\n';
+    std::cout << "A* goal x : " << goal_x << ", y : " << goal_y << '\n';
 
     // [2] Lambda for boundary and obstacle checking
     auto valid = [&](int x, int y)
@@ -69,12 +69,12 @@ std::vector<std::pair<int, int>> GlobalPlanner::calculate_path_a_star(int start_
 
         if (!in)
         {
-            std::cout << "A*pixel invalid[OOR] : (" << x << ", " << y << ")" << '\n';
+            std::cout << "A* pixel invalid[OOR] : (" << x << ", " << y << ")" << '\n';
         }
 
         uchar color = this->map_.at<uchar>(y, x);
-        std::cout << "A*color : " << static_cast<int>(color) << '\n';
-        std::cout << "A*Goal pixel: " << static_cast<int>(this->map_.at<uchar>(goal_y, goal_x)) << std::endl;
+        std::cout << "A* color : " << static_cast<int>(color) << '\n';
+        std::cout << "A* Goal pixel: " << static_cast<int>(this->map_.at<uchar>(goal_y, goal_x)) << std::endl;
 
         return in && color >= 200;
     };
@@ -112,7 +112,7 @@ std::vector<std::pair<int, int>> GlobalPlanner::calculate_path_a_star(int start_
         if (cur->x == goal_x && cur->y == goal_y)
         {
             last = cur;
-            std::cout << "A*Goal Reached last x, y (" << last->x << ", " << last->y << ")";
+            std::cout << "A* Goal Reached last x, y (" << last->x << ", " << last->y << ")";
             break;
         }
 
@@ -126,28 +126,28 @@ std::vector<std::pair<int, int>> GlobalPlanner::calculate_path_a_star(int start_
             // (0,0) : only RIGHT and DOWN
             if (cur->x == 0 && cur->y == 0 && (d == 1 || d == 3))
             {
-                std::cout << "A*LT Skipping..." << '\n';
+                std::cout << "A* LT Skipping..." << '\n';
                 std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
             // (w-1,0) : only LEFT and DOWN
             if (cur->x == w - 1 && cur->y == 0 && (d == 0 || d == 3))
             {
-                std::cout << "A*RT Skipping..." << '\n';
+                std::cout << "A* RT Skipping..." << '\n';
                 std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
             // (0,h-1) : only RIGHT and UP
             if (cur->x == 0 && cur->y == h - 1 && (d == 1 || d == 2))
             {
-                std::cout << "A*LB Skipping..." << '\n';
+                std::cout << "A* LB Skipping..." << '\n';
                 std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
             // (w-1,h-1) : only LEFT and UP
             if (cur->x == w - 1 && cur->y == h - 1 && (d == 0 || d == 2))
             {
-                std::cout << "A*RB Skipping..." << '\n';
+                std::cout << "A* RB Skipping..." << '\n';
                 std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
@@ -156,7 +156,7 @@ std::vector<std::pair<int, int>> GlobalPlanner::calculate_path_a_star(int start_
             const int &ny = cur->y + dy[d];
 
             std::cout << "==================================================" << '\n';
-            std::cout << "A*Explore 4-connected pixels" << '\n';
+            std::cout << "A* Explore 4-connected pixels" << '\n';
             std::cout << "current x, y (" << cur->x << ", " << cur->y << ")" << '\n';
             std::cout << "next x, y (" << nx << ", " << ny << ")" << '\n';
             std::cout << "==================================================" << '\n';
@@ -169,7 +169,7 @@ std::vector<std::pair<int, int>> GlobalPlanner::calculate_path_a_star(int start_
             Node *next = new Node(nx, ny, cur->cost + 1, cur->cost + 1 + heuristic(nx, ny, goal_x, goal_y), cur);
             open.push(next);
 
-            std::cout << "A*OpenSet size: " << open.size() << std::endl;
+            std::cout << "A* OpenSet size: " << open.size() << std::endl;
         }
     }
 

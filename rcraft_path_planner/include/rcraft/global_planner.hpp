@@ -37,7 +37,7 @@ namespace rcraft::planner
         virtual ~GlobalPlanner();
 
         void load_map(const std::string &map_file_path);
-        std::vector<std::pair<int, int>> calculate_path_a_star(int start_x, int start_y, int goal_x, int goal_y);
+        std::vector<std::pair<int, int>> plan_by_a_star(int start_x, int start_y, int goal_x, int goal_y);
 
     public:
         using SharedPtr = std::shared_ptr<GlobalPlanner>;

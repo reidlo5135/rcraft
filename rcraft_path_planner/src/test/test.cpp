@@ -2,15 +2,15 @@
 
 int main(int argc, const char *const *argv)
 {
-    rcraft::planner::GlobalPlanner::SharedPtr path = std::make_shared<rcraft::planner::GlobalPlanner>();
+    rcraft::planner::GlobalPlanner::SharedPtr global_planner = std::make_shared<rcraft::planner::GlobalPlanner>();
 
     std::string map_path = "C:/mn_ws/rcraft/rcraft_map_server/maps/start.bmp";
-    path->load_map(map_path);
+    global_planner->load_map(map_path);
 
     int start_x = 130, start_y = 383;
     int goal_x  = 259, goal_y = 384;
 
-    auto result_path = path->calculate_path_a_star(start_x, start_y, goal_x, goal_y);
+    auto result_path = global_planner->plan_by_a_star(start_x, start_y, goal_x, goal_y);
 
     if (result_path.empty())
     {
