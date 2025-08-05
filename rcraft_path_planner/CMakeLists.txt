@@ -18,9 +18,48 @@ else()
 endif()
 
 add_library(${LIB_NAME} SHARED ${RCRAFT_ALGORITHM_SRC})
-target_include_directories(${LIB_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(${LIB_NAME} PRIVATE ${OpenCV_LIBS})
+target_include_directories(${LIB_NAME}
+        PUBLIC ${OpenCV_INCLUDE_DIRS}
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(${LIB_NAME} PUBLIC ${OpenCV_LIBS})
 
-#add_executable(${PROJECT_NAME}_test src/test/test.cpp)
-#target_include_directories(${PROJECT_NAME}_test PRIVATE ${OpenCV_INCLUDE_DIRS})
-#target_link_libraries(${PROJECT_NAME}_test PRIVATE ${LIB_NAME})
+# ----------- install/export 추가 -------------
+include(GNUInstallDirs)
+
+install(TARGETS ${LIB_NAME}
+        EXPORT ${LIB_NAME}Targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}    # .dll
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}    # .lib/.a
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}    # .so/.dll(unix)
+)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(EXPORT ${LIB_NAME}Targets
+        FILE ${LIB_NAME}Targets.cmake
+        NAMESPACE ${LIB_NAME}::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME}
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${LIB_NAME}Config.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}Config.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME}
+)
+
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}Config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/${LIB_NAME}ConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${LIB_NAME}
+)
+# ----------- install/export 끝 -------------
+
