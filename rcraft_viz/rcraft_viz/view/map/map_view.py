@@ -1,3 +1,5 @@
+import ctypes
+
 from PyQt5.QtWidgets import (
     QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
     QSizePolicy, QPushButton
@@ -8,6 +10,7 @@ from PyQt5.QtCore import Qt, QPointF, QRectF
 from rcraft_viz.scene.goal.goal_item import GoalItem
 from rcraft_viz.scene.robot.robot_item import RobotItem
 from rcraft_viz.viewmodel.map.map_viewmodel import MapViewModel
+from rcraft_cython.utils.libloader import LibLoader
 
 
 class MapView(QGraphicsView):
@@ -97,7 +100,7 @@ class MapView(QGraphicsView):
 
         self.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatioByExpanding)
 
-        self.robotItem.setPos(0, abs(0 - heightM))
+        self.robotItem.setPos(10, abs(10 - heightM))
         self.robotItem.setZValue(1)
         self.scene.addItem(self.robotItem)
 

@@ -15,7 +15,7 @@ dependencies = [
   "pyyaml",
   "opencv-python",
   "numpy",
-  "pybind11"
+  "rcraft_cython"
 ]
 requires-python = ">=3.7"
 

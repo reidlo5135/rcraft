@@ -26,8 +26,12 @@ class LibLoader:
 
 
     def load_library(self, package_name: str, lib_name: str) -> ctypes.CDLL:
-        rel_path: str = os.path.join(self.base_dir, f"../{package_name}/build/lib{lib_name}{self.extension}")
+        rel_path: str = os.path.join(self.base_dir, f"../../../{package_name}/build/lib{lib_name}{self.extension}")
         lib_path: str = os.path.normpath(rel_path)
+
+        print(f"self.base_dir: {self.base_dir}")
+        print(f"rel_path: {rel_path}")
+        print(f"lib_path: {lib_path}")
 
         if not os.path.exists(lib_path):
             raise FileNotFoundError(f"Cannot find DLL at: {lib_path}")
