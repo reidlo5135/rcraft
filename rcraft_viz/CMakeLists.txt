@@ -19,11 +19,23 @@ else()
     message(STATUS "OpenCV Not Found")
 endif()
 
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../rcraft_libs")
+set(LIBS_NAME "rcraft_libs")
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../${LIBS_NAME}")
 find_package(rcraft_path_planner REQUIRED)
 
-add_executable(rcraft_viz main.cpp)
-target_link_libraries(rcraft_viz Qt5::Core Qt5::Widgets rcraft_path_planner::rcraft_path_planner ${OpenCV_LIBS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+file(GLOB_RECURSE RCRAFT_VIZ_HEADERS include/rcraft/**/*.hpp)
+file(GLOB_RECURSE RCRAFT_VIZ_SRC src/*.cpp)
+message(STATUS "${RCRAFT_VIZ_SRC}")
+
+set(EXEC_NAME ${PROJECT_NAME})
+add_executable(${EXEC_NAME} ${RCRAFT_VIZ_SRC} ${RCRAFT_VIZ_HEADERS})
+target_link_libraries(${EXEC_NAME}
+        Qt5::Core
+        Qt5::Widgets
+        rcraft_path_planner::rcraft_path_planner
+        ${OpenCV_LIBS}
+)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
@@ -45,5 +57,9 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_BIN_PATH}/Qt5${QT_LIB}${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
+    add_custom_command(TARGET ${EXEC_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/../rcraft_libs/bin/librcraft_path_planner.dll"
+            "$<TARGET_FILE_DIR:rcraft_viz>"
+    )
 endif ()
-
