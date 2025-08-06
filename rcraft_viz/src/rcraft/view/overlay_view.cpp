@@ -5,7 +5,7 @@ using namespace rcraft::viz;
 OverlayView::OverlayView(QWidget *parent)
     : QWidget(parent)
 {
-    QScreen* screen = QGuiApplication::primaryScreen();
+    QScreen *screen = QGuiApplication::primaryScreen();
     QSize screenSize = screen ? screen->size() : QSize(1920, 1080);
 
     int baseWidth = 1600;
@@ -17,10 +17,8 @@ OverlayView::OverlayView(QWidget *parent)
     this->mapViewModel_ = std::make_unique<MapViewModel>(this);
     this->mapView_ = std::make_unique<MapView>(this->mapViewModel_.get());
 
-    connect(this->mapViewModel_.get(), &MapViewModel::mapUpdated,
-            this->mapView_.get(), &MapView::OnMapUpdated);
-    connect(this->mapViewModel_.get(), &MapViewModel::resolutionChanged,
-            this->mapView_.get(), &MapView::OnResolutionChanged);
+    connect(this->mapViewModel_.get(), &MapViewModel::mapUpdated, this->mapView_.get(), &MapView::OnMapUpdated);
+    connect(this->mapViewModel_.get(), &MapViewModel::resolutionChanged, this->mapView_.get(), &MapView::OnResolutionChanged);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -29,7 +27,7 @@ OverlayView::OverlayView(QWidget *parent)
 
 OverlayView::~OverlayView() = default;
 
-void OverlayView::resizeEvent(QResizeEvent* event)
+void OverlayView::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 }

@@ -30,16 +30,16 @@ namespace rcraft::viz
         void SetScene();
         void UpdateButtonPosition();
 
-        MapViewModel* viewModel_;
-        QGraphicsScene* scene_ = nullptr;
-        QGraphicsPixmapItem* pixmapItem_ = nullptr;
-        QPushButton* mapLoadButton_ = nullptr;
+        MapViewModel *viewModel_;
+        QGraphicsScene *scene_ = nullptr;
+        QGraphicsPixmapItem *pixmapItem_ = nullptr;
+        QPushButton *mapLoadButton_ = nullptr;
         float mapResolution_ = 1.0f;
         bool mapLoaded_ = false;
         QSize mapSize_ = {0, 0};
 
-        RobotItem* robotItem_ = nullptr;
-        GoalItem* goalItem_ = nullptr;
+        RobotItem *robotItem_ = nullptr;
+        GoalItem *goalItem_ = nullptr;
         QPoint goalItemPos_ = {0, 0};
 
     protected:

@@ -41,7 +41,7 @@ bool MapModel::loadMapFromPath(const std::string &path)
         qInfo() << "[INFO][M] Loaded map from" << QString::fromStdString(path);
         return true;
     }
-    catch (const std::exception& e)
+    catch (const std::exception &e)
     {
         qWarning() << "[ERROR][M] Failed to load image:" << e.what();
         return false;

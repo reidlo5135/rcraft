@@ -102,13 +102,14 @@ void MapView::OnMapUpdated(const QImage& qImage)
     // this->scene_->addItem(robotItem_);
 }
 
-void MapView::mouseMoveEvent(QMouseEvent* event)
+void MapView::mouseMoveEvent(QMouseEvent *event)
 {
     if (!this->mapLoaded_)
     {
         QGraphicsView::mouseMoveEvent(event);
         return;
     }
+
     QPointF scenePos = mapToScene(event->pos());
     int x = static_cast<int>(scenePos.x() / this->mapResolution_);
     int y = static_cast<int>(scenePos.y() / this->mapResolution_);
@@ -119,7 +120,7 @@ void MapView::mouseMoveEvent(QMouseEvent* event)
     QGraphicsView::mouseMoveEvent(event);
 }
 
-void MapView::mousePressEvent(QMouseEvent* event)
+void MapView::mousePressEvent(QMouseEvent *event)
 {
     if (!this->mapLoaded_)
     {
