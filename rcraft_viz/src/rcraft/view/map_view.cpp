@@ -17,14 +17,14 @@ MapView::MapView(MapViewModel *viewModel, QWidget *parent)
     this->mapLoaded_ = false;
     this->mapSize_ = QSize(0, 0);
     
-    // robotItem_ = new RobotItem(this->mapResolution_);
-    // robotItem_->setRotation(270);
-    // robotItem_->setPos(0, 0);
-    // robotItem_->setZValue(1);
-    // this->scene_->addItem(robotItem_);
+    this->robotUnit_ = std::make_shared<RobotUnit>(static_cast<double>(this->mapResolution_));
+    this->robotUnit_->setRotation(270);
+    this->robotUnit_->setPos(0, 0);
+    this->robotUnit_->setZValue(1);
+    this->scene_->addItem(this->robotUnit_.get());
 
-    // goalItem_ = nullptr;
-    // goalItemPos_ = QPoint(0, 0);
+    this->goalUnit_ = nullptr;
+    goalItemPos_ = QPoint(0, 0);
 
     setMouseTracking(true);
     
@@ -71,8 +71,8 @@ void MapView::OnMapUpdated(const QImage& qImage)
     if (qImage.isNull())
         return;
 
-    // if (robotItem_)
-    //     this->scene_->removeItem(robotItem_);
+    if (this->robotUnit_)
+        this->scene_->removeItem(this->robotUnit_.get());
 
     QPixmap pixmap = QPixmap::fromImage(qImage);
     this->scene_->clear();
@@ -97,9 +97,9 @@ void MapView::OnMapUpdated(const QImage& qImage)
 
     fitInView(this->scene_->sceneRect(), Qt::KeepAspectRatioByExpanding);
 
-    // robotItem_->setPos(10, abs(10 - heightM));
-    // robotItem_->setZValue(1);
-    // this->scene_->addItem(robotItem_);
+    this->robotUnit_->setPos(10, abs(10 - heightM));
+    this->robotUnit_->setZValue(1);
+    this->scene_->addItem(this->robotUnit_.get());
 }
 
 void MapView::mouseMoveEvent(QMouseEvent *event)
@@ -114,8 +114,8 @@ void MapView::mouseMoveEvent(QMouseEvent *event)
     int x = static_cast<int>(scenePos.x() / this->mapResolution_);
     int y = static_cast<int>(scenePos.y() / this->mapResolution_);
 
-    // if (x >= 0 && y >= 0)
-    //     goalItemPos_ = QPoint(x, y);
+    if (x >= 0 && y >= 0)
+        this->goalItemPos_ = QPoint(x, y);
 
     QGraphicsView::mouseMoveEvent(event);
 }
@@ -138,18 +138,19 @@ void MapView::mousePressEvent(QMouseEvent *event)
         x = std::max(0, std::min(x, width));
         y = std::max(0, std::min(y, height));
 
-        // if (!goalItem_) {
-        //     goalItem_ = new GoalItem(this->mapResolution_);
-        //     this->scene_->addItem(goalItem_);
-        // }
-        // goalItem_->setPos(x, y);
-        // goalItem_->setZValue(1);
-        // goalItem_->update();
-        // this->scene_->update();
-        //
-        // qDebug() << "[INFO][V] ready for path finding\n\t"
-        //          << "robot x, y:" << robotItem_->x() << robotItem_->y()
-        //          << "goal x, y:" << goalItem_->x() << goalItem_->y();
+        if (!this->goalUnit_)
+        {
+            this->goalUnit_ = std::make_shared<GoalUnit>(static_cast<double>(this->mapResolution_));
+            this->scene_->addItem(this->goalUnit_.get());
+        }
+        this->goalUnit_->setPos(x, y);
+        this->goalUnit_->setZValue(1);
+        this->goalUnit_->update();
+        this->scene_->update();
+
+        qDebug() << "[INFO][V] ready for path finding\n\t"
+                 << "robot x, y:" << this->robotUnit_->x() << this->robotUnit_->y()
+                 << "goal x, y:" << this->goalUnit_->x() << this->goalUnit_->y();
     }
     else
     {

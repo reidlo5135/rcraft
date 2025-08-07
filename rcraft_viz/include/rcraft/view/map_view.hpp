@@ -1,6 +1,10 @@
 #ifndef RCRAFT_MAP_VIEW_HPP
 #define RCRAFT_MAP_VIEW_HPP
 
+#pragma once
+
+#include <memory>
+
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
@@ -11,18 +15,16 @@
 #include <QResizeEvent>
 #include <QMouseEvent>
 #include <QPointF>
-#include <memory>
 #include <QPixmap>
 #include <QDebug>
 #include <QGraphicsRectItem>
 
 #include "rcraft/view_model/map_view_model.hpp"
+#include "rcraft/unit/robot_unit.hpp"
+#include "rcraft/unit/goal_unit.hpp"
 
 namespace rcraft::viz
 {
-    class GoalItem;
-    class RobotItem;
-
     class MapView : public QGraphicsView
     {
         Q_OBJECT
@@ -38,8 +40,8 @@ namespace rcraft::viz
         bool mapLoaded_ = false;
         QSize mapSize_ = {0, 0};
 
-        RobotItem *robotItem_ = nullptr;
-        GoalItem *goalItem_ = nullptr;
+        RobotUnit::SharedPtr robotUnit_;
+        GoalUnit::SharedPtr goalUnit_ = nullptr;
         QPoint goalItemPos_ = {0, 0};
 
     protected:

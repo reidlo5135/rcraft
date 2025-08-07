@@ -2,6 +2,7 @@
 #define RCRAFT_MAP_VIEW_MODEL_HPP
 
 #pragma once
+
 #include <memory>
 #include <QString>
 #include <QObject>
