@@ -400,7 +400,7 @@ void MapView::mousePressEvent(QMouseEvent *event)
  *
  * @note If Z-order requires the path above goal/robot, increase setZValue() accordingly.
  */
-void MapView::onPlanReady(const std::vector<std::pair<int,int>>& path)
+void MapView::onPlanReady(const std::vector<std::pair<int,int>> &path)
 {
     this->isPathPlanning_ = false;
     unsetCursor();
@@ -444,7 +444,7 @@ void MapView::onPlanReady(const std::vector<std::pair<int,int>>& path)
  *
  * @param what Human-readable error message emitted by the planner worker.
  */
-void MapView::onPlanError(const QString& what)
+void MapView::onPlanError(const QString &what)
 {
     this->isPathPlanning_ = false;
     unsetCursor();
