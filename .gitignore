@@ -1,8 +1,10 @@
 .idea
-.venv
-*.egg-info
-__pycache__
 build
 install
 log
 cmake-build-debug
+.a
+.*.a
+.dll
+.so
+.dylib
