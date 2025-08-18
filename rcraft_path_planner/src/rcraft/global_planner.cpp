@@ -43,145 +43,327 @@ void GlobalPlanner::load_map(const std::string &map_file_path)
     }
 }
 
+/**
+ * @brief Plan a path on the loaded map using the A* algorithm.
+ *
+ * This version uses:
+ * - Bounding Box reduction (search area limited to start–goal rectangle + margin)
+ * - Manhattan heuristic (4-connected grid)
+ * - gScore array for pruning worse paths
+ * - 1D index representation for performance
+ *
+ * @param start_x Start cell x-coordinate (pixel index).
+ * @param start_y Start cell y-coordinate (pixel index).
+ * @param goal_x  Goal cell x-coordinate (pixel index).
+ * @param goal_y  Goal cell y-coordinate (pixel index).
+ * @return std::vector<std::pair<int,int>> The computed path from start to goal (empty if no path).
+ */
 std::vector<std::pair<int, int>> GlobalPlanner::plan_by_a_star(int start_x, int start_y, int goal_x, int goal_y)
 {
-    // [0] Check for empty map
+    /// [0] Validate map
     if (this->map_.empty())
     {
-        std::cerr << "A* loaded map is empty" << std::endl;
+        std::cerr << "A* loaded map is empty\n";
         return {};
     }
 
-    std::chrono::seconds();
-
-    // [1] Get map dimensions
     int w = this->map_.cols;
     int h = this->map_.rows;
 
-    std::cout << "A* Map width, height (" << w << ", " << h << ")" << '\n';
-    std::cout << "A* start x : " << start_x << ", y : " << start_y << '\n';
-    std::cout << "A* goal x : " << goal_x << ", y : " << goal_y << '\n';
-
-    // [2] Lambda for boundary and obstacle checking
-    auto valid = [&](int x, int y)
+    /// [1] Utility: boundary check
+    auto inside = [&](int x, int y)
     {
-        const bool &in = (x >= 0 && y >= 0 && x < w && y < h);
-
-        if (!in)
-        {
-            std::cout << "A* pixel invalid[OOR] : (" << x << ", " << y << ")" << '\n';
-        }
-
-        uchar color = this->map_.at<uchar>(y, x);
-        std::cout << "A* color : " << static_cast<int>(color) << '\n';
-        std::cout << "A* Goal pixel: " << static_cast<int>(this->map_.at<uchar>(goal_y, goal_x)) << std::endl;
-
-        return in && color >= 200;
+        return static_cast<unsigned>(x) < static_cast<unsigned>(w) &&
+            static_cast<unsigned>(y) < static_cast<unsigned>(h);
     };
 
-    // [3] Closed list to mark visited nodes
-    std::vector<std::vector<bool>> closed(h, std::vector<bool>(w, false));
+    /// [2] Utility: obstacle check (free if gray >= 200)
+    auto is_free = [&](int x, int y) -> bool
+    {
+        if (!inside(x, y))
+        {
+            return false;
+        }
+        const uchar *row = this->map_.ptr<uchar>(y);
+        return row[x] >= 200;
+    };
 
-    // [4] Custom comparator for A*open set (priority queue)
-    auto cmp = [](Node *a, Node *b) { return a->priority > b->priority; };
-    std::priority_queue<Node *, std::vector<Node *>, decltype(cmp)> open(cmp);
+    /// [3] Validate start/goal positions
+    if (!is_free(start_x, start_y) || !is_free(goal_x, goal_y))
+    {
+        return {};
+    }
 
-    // [5] Create and insert the start node
-    Node *start = new Node(start_x, start_y, 0, heuristic(start_x, start_y, goal_x, goal_y), nullptr);
-    open.push(start);
+    /// [4] Bounding Box reduction
+    constexpr int MARGIN = 80;
+    int minx = std::max(0, std::min(start_x, goal_x) - MARGIN);
+    int miny = std::max(0, std::min(start_y, goal_y) - MARGIN);
+    int maxx = std::min(w - 1, std::max(start_x, goal_x) + MARGIN);
+    int maxy = std::min(h - 1, std::max(start_y, goal_y) + MARGIN);
+    int bw = maxx - minx + 1;
+    int bh = maxy - miny + 1;
+    int N = bw * bh;
 
-    // [6] For storing goal node pointer (for path tracing)
-    Node *last = nullptr;
+    /// [5] Index conversion helpers
+    auto idx = [&](int x, int y)
+    {
+        return (y - miny) * bw + (x - minx);
+    };
 
-    // [7] Main A*search loop
+    auto to_xy = [&](int i)
+    {
+        int yy = i / bw + miny;
+        int xx = i % bw + minx;
+        return std::pair<int, int>(xx, yy);
+    };
+
+    /// [6] Heuristic function (Manhattan distance)
+    auto hfun = [&](int x, int y)
+    {
+        return std::abs(x - goal_x) + std::abs(y - goal_y);
+    };
+
+    /// [7] A* state arrays
+    std::vector<int> g(N, INT_MAX);
+    std::vector<int> parent(N, -1);
+    std::vector<uint8_t> closed(N, 0);
+
+    /// [8] Open list with (f-score, index)
+    std::priority_queue<QN, std::vector<QN>, Cmp> open;
+
+    /// [9] Initialize start node
+    int s_i = idx(start_x, start_y);
+    int g_i = idx(goal_x, goal_y);
+
+    g[s_i] = 0;
+    open.push({hfun(start_x, start_y), s_i});
+
+    static constexpr int dx[4] = {1, -1, 0, 0};
+    static constexpr int dy[4] = {0, 0, 1, -1};
+
+    /// [10] Main A* loop
     while (!open.empty())
     {
-        // [8] Get the node with the lowest priority (cost + heuristic)
-        Node *cur = open.top();
+        QN cur = open.top();
         open.pop();
+        int i = cur.i;
 
-        // [9] Skip if already closed (visited)
-        if (closed[cur->y][cur->x])
+        if (closed[i])
         {
-            delete cur;
             continue;
         }
-        closed[cur->y][cur->x] = true;
+        closed[i] = 1;
 
-        // [10] Check if goal is reached
-        if (cur->x == goal_x && cur->y == goal_y)
+        /// [11] Goal reached
+        if (i == g_i)
         {
-            last = cur;
-            std::cout << "A* Goal Reached last x, y (" << last->x << ", " << last->y << ")";
             break;
         }
 
-        // [11] Explore 4-connected neighbors
-        static constexpr int dx[4] = {1, -1, 0, 0};
-        static constexpr int dy[4] = {0, 0, 1, -1};
+        auto [cx, cy] = to_xy(i);
+        int cg = g[i];
 
+        /// [12] Explore neighbors (4-connected)
         for (int d = 0; d < 4; ++d)
         {
-            // Vertex (corner) Filtering only
-            // (0,0) : only RIGHT and DOWN
-            if (cur->x == 0 && cur->y == 0 && (d == 1 || d == 3))
+            int nx = cx + dx[d];
+            int ny = cy + dy[d];
+
+            if (nx < minx || ny < miny || nx > maxx || ny > maxy)
             {
-                std::cout << "A* LT Skipping..." << '\n';
-                std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
-            // (w-1,0) : only LEFT and DOWN
-            if (cur->x == w - 1 && cur->y == 0 && (d == 0 || d == 3))
+            if (!is_free(nx, ny))
             {
-                std::cout << "A* RT Skipping..." << '\n';
-                std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
-                continue;
-            }
-            // (0,h-1) : only RIGHT and UP
-            if (cur->x == 0 && cur->y == h - 1 && (d == 1 || d == 2))
-            {
-                std::cout << "A* LB Skipping..." << '\n';
-                std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
-                continue;
-            }
-            // (w-1,h-1) : only LEFT and UP
-            if (cur->x == w - 1 && cur->y == h - 1 && (d == 0 || d == 2))
-            {
-                std::cout << "A* RB Skipping..." << '\n';
-                std::cout << "cur x, y (" << cur->x << ", " << cur->y << ")" << '\n';
                 continue;
             }
 
-            const int &nx = cur->x + dx[d];
-            const int &ny = cur->y + dy[d];
-
-            std::cout << "==================================================" << '\n';
-            std::cout << "A* Explore 4-connected pixels" << '\n';
-            std::cout << "current x, y (" << cur->x << ", " << cur->y << ")" << '\n';
-            std::cout << "next x, y (" << nx << ", " << ny << ")" << '\n';
-            std::cout << "==================================================" << '\n';
-
-            // [12] Skip invalid or already closed neighbors
-            if (!valid(nx, ny) || closed[ny][nx])
+            int ni = idx(nx, ny);
+            if (closed[ni])
+            {
                 continue;
+            }
 
-            // [13] Create neighbor node and push to open list
-            Node *next = new Node(nx, ny, cur->cost + 1, cur->cost + 1 + heuristic(nx, ny, goal_x, goal_y), cur);
-            open.push(next);
-
-            std::cout << "A* OpenSet size: " << open.size() << std::endl;
+            int ng = cg + 1;
+            if (ng < g[ni])
+            {
+                g[ni] = ng;
+                parent[ni] = i;
+                int f = ng + hfun(nx, ny);
+                open.push({f, ni});
+            }
         }
     }
 
-    // [14] Reconstruct path from goal to start using parent pointers
+    /// [13] Path reconstruction
     std::vector<std::pair<int, int>> path;
-    while (last)
+    if (g[g_i] == INT_MAX)
     {
-        path.emplace_back(last->x, last->y);
-        last = last->parent;
+        return path; // not found
     }
+
+    for (int i = g_i; i != -1; i = parent[i])
+    {
+        path.push_back(to_xy(i));
+        if (i == s_i)
+        {
+            break;
+        }
+    }
+
     std::reverse(path.begin(), path.end());
 
-    // [15] Return the path (empty if not found)
+    /// [14] Return path
+    return path;
+}
+
+std::vector<std::pair<int, int>>
+GlobalPlanner::plan_by_a_star_8dir(int start_x, int start_y, int goal_x, int goal_y, int margin)
+{
+    // [0] 입력 맵 검증
+    if (this->map_.empty() || this->map_.type() != CV_8UC1)
+    {
+        return {};
+    }
+
+    int w = this->map_.cols;
+    int h = this->map_.rows;
+
+    // [1] 경계/통로 유틸
+    auto inside = [&](int x, int y)
+    {
+        return (unsigned)x < (unsigned)w && (unsigned)y < (unsigned)h;
+    };
+    auto is_free = [&](int x, int y) -> bool
+    {
+        if (!inside(x, y))
+        {
+            return false;
+        }
+        const uchar *row = this->map_.ptr<uchar>(y);
+        return row[x] >= 200;
+    };
+
+    // [2] 시작/목표 유효성
+    if (!is_free(start_x, start_y) || !is_free(goal_x, goal_y))
+    {
+        return {};
+    }
+
+    // [3] Bounding Box 축소
+    int minx = std::max(0, std::min(start_x, goal_x) - margin);
+    int miny = std::max(0, std::min(start_y, goal_y) - margin);
+    int maxx = std::min(w - 1, std::max(start_x, goal_x) + margin);
+    int maxy = std::min(h - 1, std::max(start_y, goal_y) + margin);
+
+    int bw = maxx - minx + 1;
+    int bh = maxy - miny + 1;
+    int N  = bw * bh;
+
+    auto idx = [&](int x, int y)
+    {
+        return (y - miny) * bw + (x - minx);
+    };
+    auto to_xy = [&](int i)
+    {
+        int yy = i / bw + miny;
+        int xx = i % bw + minx;
+        return std::pair<int, int>(xx, yy);
+    };
+
+    // [4] 상태 배열
+    std::vector<int> g(N, std::numeric_limits<int>::max());
+    std::vector<int> parent(N, -1);
+    std::vector<uint8_t> closed(N, 0);
+
+    std::priority_queue<QN, std::vector<QN>, Cmp> open;
+
+    int s_i = idx(start_x, start_y);
+    int g_i = idx(goal_x,  goal_y);
+
+    g[s_i] = 0;
+    open.push({octile_heuristic(start_x, start_y, goal_x, goal_y), s_i});
+
+    // [5] 8방향 이웃
+    static constexpr int dx[8] = { 1, -1,  0,  0,  1,  1, -1, -1 };
+    static constexpr int dy[8] = { 0,  0,  1, -1,  1, -1,  1, -1 };
+
+    // [6] 메인 루프
+    while (!open.empty())
+    {
+        QN cur = open.top();
+        open.pop();
+
+        int i = cur.i;
+        if (closed[i])
+        {
+            continue;
+        }
+        closed[i] = 1;
+
+        if (i == g_i)
+        {
+            break;
+        }
+
+        auto [cx, cy] = to_xy(i);
+        int cg = g[i];
+
+        for (int d = 0; d < 8; ++d)
+        {
+            int nx = cx + dx[d];
+            int ny = cy + dy[d];
+
+            // 축소 영역 밖
+            if (nx < minx || ny < miny || nx > maxx || ny > maxy)
+            {
+                continue;
+            }
+            // 장애물
+            if (!is_free(nx, ny))
+            {
+                continue;
+            }
+            // corner-cutting 방지 (대각선일 때만 체크)
+            if (!allow_diagonal_without_cutting(cx, cy, nx, ny, is_free))
+            {
+                continue;
+            }
+
+            int ni = idx(nx, ny);
+            if (closed[ni])
+            {
+                continue;
+            }
+
+            // 이동 비용: 직선/대각선 구분
+            int step = ((cx == nx) || (cy == ny)) ? kCostStraight : kCostDiagonal;
+            int ng = cg + step;
+
+            if (ng < g[ni])
+            {
+                g[ni] = ng;
+                parent[ni] = i;
+                int f = ng + octile_heuristic(nx, ny, goal_x, goal_y);
+                open.push({f, ni});
+            }
+        }
+    }
+
+    // [7] 경로 복원
+    std::vector<std::pair<int, int>> path;
+    if (g[g_i] == std::numeric_limits<int>::max())
+    {
+        return path; // 경로 없음
+    }
+    for (int i = g_i; i != -1; i = parent[i])
+    {
+        path.push_back(to_xy(i));
+        if (i == s_i)
+        {
+            break;
+        }
+    }
+    std::reverse(path.begin(), path.end());
     return path;
 }
