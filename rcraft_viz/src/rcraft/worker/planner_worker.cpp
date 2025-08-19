@@ -5,6 +5,7 @@ using namespace rcraft::viz;
 PlannerWorker::PlannerWorker(QObject *parent)
     : QObject(parent)
     , global_planner_(std::make_shared<planner::GlobalPlanner>())
+    , map_server_(std::make_shared<map::MapServer>())
 {
 }
 
@@ -40,7 +41,8 @@ void PlannerWorker::plan(const QString &mapPath, double sx, double sy, double gx
         const std::chrono::time_point<Clock> start = Clock::now();
         qDebug() << "[INFO][W] Plan Loading map:" << mapPath;
 
-        this->global_planner_->load_map(mapPath.toStdString());
+        const cv::Mat &map = this->map_server_->load_map(mapPath.toStdString());
+        this->global_planner_->set_map(map);
         const std::vector<std::pair<int, int>> &path = this->global_planner_->plan_by_a_star(
             static_cast<int>(sx), static_cast<int>(sy),
             static_cast<int>(gx), static_cast<int>(gy));
@@ -48,8 +50,7 @@ void PlannerWorker::plan(const QString &mapPath, double sx, double sy, double gx
         const std::chrono::time_point<Clock> end = Clock::now();
         const long long diff_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-        qDebug() << "[INFO][W] Plan Path Size:" << path.size()
-                 << "| Time:" << diff_ms << "ms";
+        qDebug() << "[INFO][W] Plan Path Size:" << path.size() << "| Time:" << diff_ms << "ms";
 
         emit planReady(path);
     }

@@ -49,6 +49,7 @@
 #include <QMetaType>
 
 #include <rcraft/global_planner.hpp>
+#include <rcraft/map_server.hpp>
 
 namespace rcraft::viz
 {
@@ -81,6 +82,7 @@ class PlannerWorker final : public QObject
          *       path-based cache in the worker if repeated calls use the same map.
          */
         planner::GlobalPlanner::SharedPtr global_planner_;
+        map::MapServer::SharedPtr map_server_;
 
     public:
         /**

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(rcraft_viz)
+project(rcraft_viz VERSION 0.1.6 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
@@ -21,7 +21,9 @@ endif()
 
 set(LIBS_NAME "rcraft_libs")
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../${LIBS_NAME}")
+
 find_package(rcraft_path_planner REQUIRED)
+find_package(rcraft_map_server REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 file(GLOB_RECURSE RCRAFT_VIZ_HEADERS include/rcraft/**/*.hpp)
@@ -43,6 +45,7 @@ target_link_libraries(${EXEC_NAME}
         Qt5::Widgets
         Qt5::Svg
         rcraft_path_planner::rcraft_path_planner
+        rcraft_map_server::rcraft_map_server
         ${OpenCV_LIBS}
 )
 
@@ -51,6 +54,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
         set(DEBUG_SUFFIX "d")
     endif ()
+
     if (EXISTS "${QT_PLUGINS_PATH}/platforms/qwindows${DEBUG_SUFFIX}.dll")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory
@@ -60,15 +64,23 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_PLUGINS_PATH}/platforms/qwindows${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
     endif ()
+
     foreach (QT_LIB Core)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_BIN_PATH}/Qt5${QT_LIB}${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
+
     add_custom_command(TARGET ${EXEC_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_SOURCE_DIR}/../rcraft_libs/bin/librcraft_path_planner.dll"
+            "$<TARGET_FILE_DIR:rcraft_viz>"
+    )
+
+    add_custom_command(TARGET ${EXEC_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/../rcraft_libs/bin/librcraft_map_server.dll"
             "$<TARGET_FILE_DIR:rcraft_viz>"
     )
 endif ()

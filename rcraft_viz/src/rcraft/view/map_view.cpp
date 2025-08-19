@@ -346,6 +346,7 @@ void MapView::mousePressEvent(QMouseEvent *event)
 
     int x = this->goalItemPos_.x();
     int y = this->goalItemPos_.y();
+
     const int width = this->mapSize_.width();
     const int height = this->mapSize_.height();
 

@@ -14,6 +14,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
 
+#define A_START_MARGIN 80
 
 namespace rcraft::planner
 {
@@ -56,8 +57,7 @@ namespace rcraft::planner
     {
         const int &dx = std::abs(x - gx);
         const int &dy = std::abs(y - gy);
-        return kCostStraight * (dx + dy)
-             + (kCostDiagonal - 2 * kCostStraight) * std::min(dx, dy);
+        return kCostStraight * (dx + dy) + (kCostDiagonal - 2 * kCostStraight) * std::min(dx, dy);
     }
 
     /**
@@ -105,7 +105,7 @@ namespace rcraft::planner
         explicit GlobalPlanner();
         virtual ~GlobalPlanner();
 
-        void load_map(const std::string &map_file_path);
+        void set_map(const cv::Mat &map);
         std::vector<std::pair<int, int>> plan_by_a_star(int start_x, int start_y, int goal_x, int goal_y);
         std::vector<std::pair<int, int>> plan_by_a_star_8dir(int start_x, int start_y, int goal_x,  int goal_y, int margin = 80);
 

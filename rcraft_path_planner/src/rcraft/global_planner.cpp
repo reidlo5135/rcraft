@@ -5,42 +5,9 @@ using namespace rcraft::planner;
 GlobalPlanner::GlobalPlanner() = default;
 GlobalPlanner::~GlobalPlanner() = default;
 
-void GlobalPlanner::load_map(const std::string &map_file_path)
+void GlobalPlanner::set_map(const cv::Mat &map)
 {
-    std::cout << "Path LoadMap : " << map_file_path << '\n';
-
-    std::string ext;
-    size_t dot = map_file_path.find_last_of('.');
-
-    if (dot != std::string::npos)
-    {
-        ext = map_file_path.substr(dot + 1);
-        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-    }
-    else
-    {
-        ext = "";
-    }
-
-    std::cout << "Path LoadMap ext : " << ext << '\n';
-
-    if (ext == "pgm")
-    {
-        this->map_ = cv::imread(map_file_path, cv::IMREAD_GRAYSCALE);
-    }
-    else
-    {
-        cv::Mat color_map = cv::imread(map_file_path, cv::IMREAD_COLOR);
-
-        if (color_map.empty())
-        {
-            std::cerr << "Path Image Map is Empty" << '\n';
-            this->map_ = cv::Mat();
-            return;
-        }
-
-        cv::cvtColor(color_map, this->map_, cv::COLOR_BGR2GRAY);
-    }
+    this->map_ = map;
 }
 
 /**
@@ -73,8 +40,7 @@ std::vector<std::pair<int, int>> GlobalPlanner::plan_by_a_star(int start_x, int 
     /// [1] Utility: boundary check
     auto inside = [&](int x, int y)
     {
-        return static_cast<unsigned>(x) < static_cast<unsigned>(w) &&
-            static_cast<unsigned>(y) < static_cast<unsigned>(h);
+        return static_cast<unsigned>(x) < static_cast<unsigned>(w) && static_cast<unsigned>(y) < static_cast<unsigned>(h);
     };
 
     /// [2] Utility: obstacle check (free if gray >= 200)
@@ -95,14 +61,13 @@ std::vector<std::pair<int, int>> GlobalPlanner::plan_by_a_star(int start_x, int 
     }
 
     /// [4] Bounding Box reduction
-    constexpr int MARGIN = 80;
-    int minx = std::max(0, std::min(start_x, goal_x) - MARGIN);
-    int miny = std::max(0, std::min(start_y, goal_y) - MARGIN);
-    int maxx = std::min(w - 1, std::max(start_x, goal_x) + MARGIN);
-    int maxy = std::min(h - 1, std::max(start_y, goal_y) + MARGIN);
-    int bw = maxx - minx + 1;
-    int bh = maxy - miny + 1;
-    int N = bw * bh;
+    const int &minx = std::max(0, std::min(start_x, goal_x) - A_START_MARGIN);
+    const int &miny = std::max(0, std::min(start_y, goal_y) - A_START_MARGIN);
+    const int &maxx = std::min(w - 1, std::max(start_x, goal_x) + A_START_MARGIN);
+    const int &maxy = std::min(h - 1, std::max(start_y, goal_y) + A_START_MARGIN);
+    const int &bw = maxx - minx + 1;
+    const int &bh = maxy - miny + 1;
+    const int &N = bw * bh;
 
     /// [5] Index conversion helpers
     auto idx = [&](int x, int y)
@@ -134,8 +99,8 @@ std::vector<std::pair<int, int>> GlobalPlanner::plan_by_a_star(int start_x, int 
     g[s_i] = 0;
     open.push({manhattan_heuristic(start_x, start_y, goal_x, goal_y), s_i});
 
-    static constexpr int dx[4] = {1, -1, 0, 0};
-    static constexpr int dy[4] = {0, 0, 1, -1};
+    static constexpr int dx[4] = { 1, -1, 0, 0 };
+    static constexpr int dy[4] = { 0, 0, 1, -1 };
 
     /// [10] Main A* loop
     while (!open.empty())
@@ -228,7 +193,7 @@ GlobalPlanner::plan_by_a_star_8dir(int start_x, int start_y, int goal_x, int goa
     // [1] 경계/통로 유틸
     auto inside = [&](int x, int y)
     {
-        return (unsigned)x < (unsigned)w && (unsigned)y < (unsigned)h;
+        return static_cast<unsigned>(x) < static_cast<unsigned>(w) && static_cast<unsigned>(y) < static_cast<unsigned>(h);
     };
     auto is_free = [&](int x, int y) -> bool
     {

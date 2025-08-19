@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.31)
-project(rcraft_path_planner VERSION 0.1.0 LANGUAGES C CXX)
+project(rcraft_path_planner VERSION 0.1.7 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-file(GLOB_RECURSE RCRAFT_ALGORITHM_SRC src/*.cpp)
+file(GLOB_RECURSE RCRAFT_PATH_PLANNER_SRC src/*.cpp)
 
 set(LIB_NAME ${PROJECT_NAME})
 
@@ -17,7 +17,7 @@ else()
     message(STATUS "OpenCV Not Found")
 endif()
 
-add_library(${LIB_NAME} SHARED ${RCRAFT_ALGORITHM_SRC})
+add_library(${LIB_NAME} SHARED ${RCRAFT_PATH_PLANNER_SRC})
 target_include_directories(${LIB_NAME}
         PUBLIC ${OpenCV_INCLUDE_DIRS}
         PUBLIC
