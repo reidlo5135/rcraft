@@ -118,10 +118,6 @@ std::vector<std::pair<int, int>> GlobalPlanner::plan_by_a_star(int start_x, int 
     };
 
     /// [6] Heuristic function (Manhattan distance)
-    auto hfun = [&](int x, int y)
-    {
-        return std::abs(x - goal_x) + std::abs(y - goal_y);
-    };
 
     /// [7] A* state arrays
     std::vector<int> g(N, INT_MAX);
@@ -136,7 +132,7 @@ std::vector<std::pair<int, int>> GlobalPlanner::plan_by_a_star(int start_x, int 
     int g_i = idx(goal_x, goal_y);
 
     g[s_i] = 0;
-    open.push({hfun(start_x, start_y), s_i});
+    open.push({manhattan_heuristic(start_x, start_y, goal_x, goal_y), s_i});
 
     static constexpr int dx[4] = {1, -1, 0, 0};
     static constexpr int dy[4] = {0, 0, 1, -1};
@@ -189,7 +185,7 @@ std::vector<std::pair<int, int>> GlobalPlanner::plan_by_a_star(int start_x, int 
             {
                 g[ni] = ng;
                 parent[ni] = i;
-                int f = ng + hfun(nx, ny);
+                int f = ng + manhattan_heuristic(nx, ny, goal_x, goal_y);
                 open.push({f, ni});
             }
         }

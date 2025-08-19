@@ -47,15 +47,15 @@ OverlayView::~OverlayView() = default;
  *
  * Scale formula:
  * - width  = screenWidth  * (1600 / 1920)
- * - height = screenHeight * ( 800 / 1080)
+ * - height = screenHeight * (800 / 1080)
  */
 void OverlayView::setScreen()
 {
     const QScreen *screen = QGuiApplication::primaryScreen();
     const QSize screenSize = screen ? screen->size() : QSize(1920, 1080);
 
-    const int baseWidth = 1600;
-    const int baseHeight = 800;
+    constexpr int baseWidth = 1600;
+    constexpr int baseHeight = 800;
     const int &scaledWidth = static_cast<int>(screenSize.width() * (static_cast<float>(baseWidth) / 1920));
     const int &scaledHeight = static_cast<int>(screenSize.height() * (static_cast<float>(baseHeight) / 1080));
     setMinimumSize(scaledWidth, scaledHeight);

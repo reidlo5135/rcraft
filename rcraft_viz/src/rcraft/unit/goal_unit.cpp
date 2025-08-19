@@ -3,72 +3,72 @@
 using namespace rcraft::viz;
 
 /**
- * @file
- * @brief Implementation of GoalUnit, a simple circular goal marker for the map scene.
- */
-
-/**
  * @brief Construct a new GoalUnit.
- *
- * @param mapResolution Map resolution/scaling factor used to derive a reasonable marker radius.
- * @param parent Optional QGraphicsItem parent.
- *
- * @details
- * The visual radius is set to @c 6 * mapResolution so the marker scales with the map.
- * The item's local origin is at (0,0); callers typically position it via @c setPos(x,y).
+ * @param mapResolution Map resolution used to derive a reasonable icon size.
+ *                      Previously radius_ = 6*mapResolution, so icon height ~= 12*mapResolution.
+ * @param parent Optional graphics parent.
  */
 GoalUnit::GoalUnit(double mapResolution, QGraphicsItem *parent)
     : QGraphicsItem(parent)
-    , radius_(6 * mapResolution)
 {
+    // 1) Load SVG
+    this->svg_ = std::make_unique<QSvgRenderer>(QString::fromUtf8(kGoalSvgPath));
+
+    if (this->svg_ && this->svg_->isValid())
+    {
+        this->svg_default_size_ = this->svg_->defaultSize();
+
+        if (this->svg_default_size_.isEmpty())
+        {
+            this->svg_default_size_ = QSizeF(24.0, 24.0);
+        }
+    }
+    else
+    {
+        // Fallback: simple dot
+        this->svg_.reset();
+    }
+
+    // 2) Compute target size in scene units
+    //    Keep the previous visual scale: height ~= 12 * mapResolution
+    this->icon_h_ = std::max(12.0 * mapResolution, 8.0); // 최소 8 유닛 보장
+    const double aspect = this->svg_default_size_.height() > 0.0 ? (this->svg_default_size_.width() / this->svg_default_size_.height()) : 1.0;
+    this->icon_w_ = this->icon_h_ * aspect;
+
+    // Fallback circle radius (roughly half height)
+    this->fallback_radius_ = 0.5 * this->icon_h_;
+
+    // Cache for better performance
+    setCacheMode(QGraphicsItem::DeviceCoordinateCache);
 }
 
-/**
- * @brief Destroy the GoalUnit (default).
- */
 GoalUnit::~GoalUnit() = default;
 
-/**
- * @brief Return the item's logical bounding rectangle in local coordinates.
- *
- * @details
- * The rectangle must fully contain all painting done in @ref paint().
- * It is centered around the local origin with a small padding (2 px) to
- * account for the pen width.
- *
- * @return QRectF Bounding rectangle used by the scene for culling/updates.
- */
-QRectF GoalUnit::boundingRect() const
+QRectF
+GoalUnit::boundingRect() const
 {
-    // NOTE: If you want it perfectly centered around (0,0), an alternative is:
-    // return QRectF(-(radius_ + 2), -(radius_ + 2), 2*(radius_ + 2), 2*(radius_ + 2));
-    return QRectF(
-        this->radius_ - 2, -this->radius_ - 2,
-        (this->radius_ + 2) * 2, (this->radius_ + 2) * 2
-    );
+    // Origin(0,0)을 아이콘 "중앙"으로 유지 (pos == center)
+    // => 좌상단 (-w/2, -h/2), 크기 (w, h)
+    return QRectF(-this->icon_w_ * 0.5, -this->icon_h_ * 0.5, this->icon_w_, this->icon_h_);
 }
 
-/**
- * @brief Paint the goal marker.
- *
- * @param painter Painter provided by the view.
- * @param option  Style options (unused).
- * @param widget  Optional widget (unused).
- *
- * @details
- * Draws a filled circle with a black outline and a cyan fill. You can customize
- * colors, pen width, and styling as needed. For best on-screen readability across
- * zoom levels, consider using a cosmetic pen (uncomment below).
- */
-void GoalUnit::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void
+GoalUnit::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    QPen pen(QColor("black"));
-    pen.setWidth(2);
-    // pen.setCosmetic(true); // Uncomment to keep outline thickness constant w.r.t. view zoom
+    if (this->svg_)
+    {
+        // 렌더 타깃을 boundingRect로 지정하면 알아서 맞춰 그림
+        this->svg_->render(painter, boundingRect());
+        return;
+    }
+
+    // Fallback: 단색 원
+    QPen pen(Qt::black);
+    pen.setWidthF(2.0);
     painter->setPen(pen);
-    painter->setBrush(QBrush(QColor("#0096ff"))); // cyan-ish fill
-    painter->drawEllipse(QPointF(0, 0), this->radius_, this->radius_);
+    painter->setBrush(QBrush(QColor("#0096ff")));
+    painter->drawEllipse(QPointF(0, 0), this->fallback_radius_, this->fallback_radius_);
 }

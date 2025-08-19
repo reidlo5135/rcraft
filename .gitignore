@@ -3,8 +3,8 @@ build
 install
 log
 cmake-build-debug
-.a
-.*.a
-.dll
-.so
-.dylib
+*.a
+*.dll.a
+*.dll
+*.so
+*.dylib

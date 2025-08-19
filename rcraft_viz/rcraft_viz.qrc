@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/rcraft_viz">
+        <file>resource/image/flag-solid-full.svg</file>
+        <file>resource/image/location-arrow-solid.svg</file>
+    </qresource>
+</RCC>

@@ -37,19 +37,16 @@ void PlannerWorker::plan(const QString &mapPath, double sx, double sy, double gx
 
     try
     {
-        const auto start = Clock::now();
+        const std::chrono::time_point<Clock> start = Clock::now();
         qDebug() << "[INFO][W] Plan Loading map:" << mapPath;
 
-        // Load (or reload) the map.
         this->global_planner_->load_map(mapPath.toStdString());
-
-        // Compute path (planner expects integer cell/pixel coordinates).
-        auto path = this->global_planner_->plan_by_a_star_8dir(
+        const std::vector<std::pair<int, int>> &path = this->global_planner_->plan_by_a_star(
             static_cast<int>(sx), static_cast<int>(sy),
             static_cast<int>(gx), static_cast<int>(gy));
 
-        const auto end = Clock::now();
-        const auto diff_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        const std::chrono::time_point<Clock> end = Clock::now();
+        const long long diff_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
         qDebug() << "[INFO][W] Plan Path Size:" << path.size()
                  << "| Time:" << diff_ms << "ms";

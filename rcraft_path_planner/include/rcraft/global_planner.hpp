@@ -34,6 +34,12 @@ namespace rcraft::planner
         }
     };
 
+    static inline int
+    manhattan_heuristic(const int &x, const int &y, const int &gx, const int &gy)
+    {
+        return std::abs(x - gx) + std::abs(y - gy);
+    }
+
     /**
      * @brief Octile 휴리스틱(8방향용, 정수 스케일).
      *
@@ -46,10 +52,10 @@ namespace rcraft::planner
      * @return int  정수 스케일 휴리스틱 비용
      */
     static inline int
-    octile_heuristic(int x, int y, int gx, int gy)
+    octile_heuristic(const int &x, const int &y, const int &gx, const int &gy)
     {
-        int dx = std::abs(x - gx);
-        int dy = std::abs(y - gy);
+        const int &dx = std::abs(x - gx);
+        const int &dy = std::abs(y - gy);
         return kCostStraight * (dx + dy)
              + (kCostDiagonal - 2 * kCostStraight) * std::min(dx, dy);
     }

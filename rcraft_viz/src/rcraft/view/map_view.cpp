@@ -104,7 +104,6 @@ void MapView::setMapLoadButton()
 void MapView::setDefaultRobotUnit()
 {
     this->robotUnit_ = std::make_shared<RobotUnit>(static_cast<double>(this->mapResolution_));
-    this->robotUnit_->setRotation(270);
     this->robotUnit_->setPos(0, 0);
     this->robotUnit_->setZValue(1);
 
@@ -226,8 +225,8 @@ void MapView::updateButtonPosition() const
 {
     if (this->mapLoadButton_)
     {
-        const int marginX = 20;
-        const int marginY = 20;
+        constexpr int marginX = 20;
+        constexpr int marginY = 20;
         this->mapLoadButton_->move(width() - this->mapLoadButton_->width() - marginX, marginY);
     }
 }
@@ -284,7 +283,7 @@ void MapView::onMapUpdated(const QImage &qImage)
 
     QPen borderPen(Qt::gray);
     borderPen.setWidth(2);
-    QRectF rect = this->scene_->sceneRect();
+    const QRectF &rect = this->scene_->sceneRect();
     this->scene_->addRect(rect, borderPen, QBrush(Qt::NoBrush));
 
     fitInView(this->scene_->sceneRect(), Qt::KeepAspectRatioByExpanding);

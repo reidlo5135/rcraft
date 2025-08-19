@@ -10,7 +10,7 @@ set(Qt5_DIR "C:/Qt/Qt5.12.4/5.12.4/mingw73_64/lib/cmake/Qt5")
 set(QT_BIN_PATH "C:/Qt/Qt5.12.4/5.12.4/mingw73_64/bin")
 set(QT_PLUGINS_PATH "C:/Qt/Qt5.12.4/5.12.4/mingw73_64/plugins")
 
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Svg REQUIRED)
 find_package(OpenCV REQUIRED)
 if(OpenCV_FOUND)
     message(STATUS "OpenCV_LIBS : ${OpenCV_LIBS}")
@@ -27,12 +27,21 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 file(GLOB_RECURSE RCRAFT_VIZ_HEADERS include/rcraft/**/*.hpp)
 file(GLOB_RECURSE RCRAFT_VIZ_SRC src/*.cpp)
 message(STATUS "${RCRAFT_VIZ_SRC}")
+message(STATUS "CURRENT DIR : ${CMAKE_CURRENT_SOURCE_DIR}")
+qt5_add_resources(RCRAFT_VIZ_RES
+        ${CMAKE_CURRENT_SOURCE_DIR}/rcraft_viz.qrc
+)
 
 set(EXEC_NAME ${PROJECT_NAME})
-add_executable(${EXEC_NAME} ${RCRAFT_VIZ_SRC} ${RCRAFT_VIZ_HEADERS})
+add_executable(${EXEC_NAME}
+        ${RCRAFT_VIZ_SRC}
+        ${RCRAFT_VIZ_HEADERS}
+        ${RCRAFT_VIZ_RES}
+)
 target_link_libraries(${EXEC_NAME}
         Qt5::Core
         Qt5::Widgets
+        Qt5::Svg
         rcraft_path_planner::rcraft_path_planner
         ${OpenCV_LIBS}
 )
