@@ -105,6 +105,7 @@ namespace rcraft::planner
         explicit GlobalPlanner();
         virtual ~GlobalPlanner();
 
+        cv::Mat get_map() const;
         void set_map(const cv::Mat &map);
         std::vector<std::pair<int, int>> plan_by_a_star(int start_x, int start_y, int goal_x, int goal_y);
         std::vector<std::pair<int, int>> plan_by_a_star_8dir(int start_x, int start_y, int goal_x,  int goal_y, int margin = 80);

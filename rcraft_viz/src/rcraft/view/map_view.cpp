@@ -32,6 +32,7 @@ MapView::MapView(MapViewModel *viewModel, QWidget *parent)
     , plannerWorker_(nullptr)
     , pathItem_(nullptr)
     , isPathPlanning_(false)
+    , mapServer_(std::make_shared<map::MapServer>())
 {
     this->setDefaultScene();
     this->setMapLoadButton();
@@ -41,6 +42,7 @@ MapView::MapView(MapViewModel *viewModel, QWidget *parent)
     this->setQConnected();
 
     this->startPlannerThread();
+    qRegisterMetaType<cv::Mat>("cv::Mat");
 }
 
 /**
@@ -274,11 +276,12 @@ void MapView::onMapUpdated(const QImage &qImage)
     this->pixmapItem_->setZValue(0);
     this->scene_->addItem(this->pixmapItem_);
 
-    int mapWidth = static_cast<int>(qImage.width() * this->mapResolution_);
-    int mapHeight = static_cast<int>(qImage.height() * this->mapResolution_);
+    const int mapWidth = static_cast<int>(qImage.width() * this->mapResolution_);
+    const int mapHeight = static_cast<int>(qImage.height() * this->mapResolution_);
     this->mapSize_ = QSize(mapWidth, mapHeight);
     this->scene_->setSceneRect(0, 0, mapWidth, mapHeight);
     this->mapLoaded_ = true;
+    this->driveMap_ = this->mapServer_->load_map(this->viewModel_->getMapPath().toStdString());
     qDebug() << "[INFO][V] OnMapUpdated:" << qImage.size() << qImage.format() << mapWidth << mapHeight << this->mapResolution_;
 
     QPen borderPen(Qt::gray);
@@ -376,7 +379,7 @@ void MapView::mousePressEvent(QMouseEvent *event)
                 << "robot (x, y) (" << this->robotUnit_->x() << ", " << this->robotUnit_->y() << ")"
                 << "goal (x, y) (" << this->goalUnit_->x() << ", " <<  this->goalUnit_->y() << ")" << '\n';
 
-        emit requestPlan(this->viewModel_->getMapPath(),
+        emit requestPlan(this->driveMap_,
             this->robotUnit_->x(), this->robotUnit_->y(),
             this->goalUnit_->x(), this->goalUnit_->y());
     }
@@ -419,13 +422,11 @@ void MapView::onPlanReady(const std::vector<std::pair<int,int>> &path)
     }
 
     QPainterPath painterPath;
-    painterPath.moveTo(path.front().first * this->mapResolution_,
-                       path.front().second * this->mapResolution_);
+    painterPath.moveTo(path.front().first * this->mapResolution_, path.front().second * this->mapResolution_);
 
     for (size_t i = 1; i < path.size(); ++i)
     {
-        painterPath.lineTo(path[i].first * this->mapResolution_,
-                           path[i].second * this->mapResolution_);
+        painterPath.lineTo(path[i].first * this->mapResolution_, path[i].second * this->mapResolution_);
     }
 
     this->pathItem_ = new QGraphicsPathItem(painterPath);

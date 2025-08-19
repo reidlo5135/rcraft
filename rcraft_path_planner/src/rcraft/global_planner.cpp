@@ -5,6 +5,12 @@ using namespace rcraft::planner;
 GlobalPlanner::GlobalPlanner() = default;
 GlobalPlanner::~GlobalPlanner() = default;
 
+cv::Mat GlobalPlanner::get_map() const
+{
+    return this->map_;
+}
+
+
 void GlobalPlanner::set_map(const cv::Mat &map)
 {
     this->map_ = map;

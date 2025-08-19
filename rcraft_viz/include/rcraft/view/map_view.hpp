@@ -38,10 +38,13 @@
 #include <QGraphicsRectItem>
 #include <QThread>
 
+#include <rcraft/map_server.hpp>
 #include "rcraft/worker/planner_worker.hpp"
 #include "rcraft/view_model/map_view_model.hpp"
 #include "rcraft/unit/robot_unit.hpp"
 #include "rcraft/unit/goal_unit.hpp"
+
+Q_DECLARE_METATYPE(cv::Mat);
 
 namespace rcraft::viz
 {
@@ -110,6 +113,9 @@ namespace rcraft::viz
 
         // ====== Data members (lifecycle managed by MapView unless noted) ======
 
+        map::MapServer::SharedPtr mapServer_;
+        cv::Mat driveMap_;
+
         /** @brief View-model providing map path, resolution, and updates (non-owning). */
         MapViewModel *viewModel_ = nullptr;
 
@@ -176,7 +182,7 @@ namespace rcraft::viz
         /**
          * @brief Signal requesting a planning operation in the worker thread.
          *
-         * @param mapPath Absolute/relative map path to load or reuse.
+         * @param driveMap Map for Driving.
          * @param sx Start X in grid/pixel coordinates (scene space → grid).
          * @param sy Start Y in grid/pixel coordinates (scene space → grid).
          * @param gx Goal  X in grid/pixel coordinates.
@@ -184,7 +190,7 @@ namespace rcraft::viz
          *
          * @note Intended to be connected with @c Qt::QueuedConnection to @c PlannerWorker::plan().
          */
-        void requestPlan(const QString &mapPath, double sx, double sy, double gx, double gy);
+        void requestPlan(const cv::Mat &driveMap, double sx, double sy, double gx, double gy);
 
     protected:
         /**

@@ -4,8 +4,7 @@ using namespace rcraft::viz;
 
 PlannerWorker::PlannerWorker(QObject *parent)
     : QObject(parent)
-    , global_planner_(std::make_shared<planner::GlobalPlanner>())
-    , map_server_(std::make_shared<map::MapServer>())
+    , globalPlanner_(std::make_shared<planner::GlobalPlanner>())
 {
 }
 
@@ -20,7 +19,7 @@ PlannerWorker::~PlannerWorker() = default;
  * This slot is designed to be invoked via a queued connection from the UI thread.
  * On success, it emits #planReady; on error, it emits #planError.
  *
- * @param mapPath Absolute or relative path to the map image file.
+ * @param driveMap Map for Driving.
  * @param sx Start X in pixel/grid coordinates (will be cast to int).
  * @param sy Start Y in pixel/grid coordinates (will be cast to int).
  * @param gx Goal  X in pixel/grid coordinates (will be cast to int).
@@ -32,25 +31,23 @@ PlannerWorker::~PlannerWorker() = default;
  * @note If repeated calls use the same map, consider caching the last loaded path
  *       inside this worker to avoid reloading from disk on every request.
  */
-void PlannerWorker::plan(const QString &mapPath, double sx, double sy, double gx, double gy)
+void PlannerWorker::plan(const cv::Mat &driveMap, double sx, double sy, double gx, double gy)
 {
     using Clock = std::chrono::steady_clock;
 
     try
     {
         const std::chrono::time_point<Clock> start = Clock::now();
-        qDebug() << "[INFO][W] Plan Loading map:" << mapPath;
 
-        const cv::Mat &map = this->map_server_->load_map(mapPath.toStdString());
-        this->global_planner_->set_map(map);
-        const std::vector<std::pair<int, int>> &path = this->global_planner_->plan_by_a_star(
+        this->globalPlanner_->set_map(driveMap);
+        const std::vector<std::pair<int, int>> &path = this->globalPlanner_->plan_by_a_star(
             static_cast<int>(sx), static_cast<int>(sy),
             static_cast<int>(gx), static_cast<int>(gy));
 
         const std::chrono::time_point<Clock> end = Clock::now();
-        const long long diff_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        const long long msDiffer = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-        qDebug() << "[INFO][W] Plan Path Size:" << path.size() << "| Time:" << diff_ms << "ms";
+        qDebug() << "[INFO][W] Plan Path Size:" << path.size() << "| Time:" << msDiffer << "ms";
 
         emit planReady(path);
     }

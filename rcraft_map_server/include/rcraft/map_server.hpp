@@ -6,6 +6,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "rcraft/map_converter.hpp"
+#include "rcraft/map_saver.hpp"
 
 #define EXT_BMP "bmp"
 #define EXT_JPG "jpg"

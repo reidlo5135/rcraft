@@ -88,24 +88,8 @@ cv::Mat MapServer::optimization(const cv::Mat &map, const std::string &ext)
 
     std::cout << "[INFO][MapServer] Optimization Map size : " << optimized_map.size << '\n';
 
-    const std::string out_path = "C:/mn_ws/rcraft/rcraft_map_server/maps/out.bmp";
-    try
-    {
-        std::filesystem::create_directories(std::filesystem::path(out_path).parent_path());
-    }
-    catch (...)
-    {
-
-    }
-
-    if (!cv::imwrite(out_path, optimized_map))
-    {
-        std::cerr << "[MapServer] imwrite failed: " << out_path << '\n';
-    }
-    else
-    {
-        std::cout << "[MapServer] wrote: " << out_path << '\n';
-    }
+    MapSaver::SharedPtr map_saver = std::make_shared<MapSaver>();
+    map_saver->save(optimized_map, "C:/mn_ws/rcraft/rcraft_map_server/maps/drive_map.bmp");
 
     const int &w = optimized_map.cols;
     const int &h = optimized_map.rows;

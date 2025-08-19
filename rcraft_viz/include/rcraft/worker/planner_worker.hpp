@@ -49,7 +49,6 @@
 #include <QMetaType>
 
 #include <rcraft/global_planner.hpp>
-#include <rcraft/map_server.hpp>
 
 namespace rcraft::viz
 {
@@ -81,8 +80,8 @@ class PlannerWorker final : public QObject
          *       underlying implementation caches the last map. Consider adding a simple
          *       path-based cache in the worker if repeated calls use the same map.
          */
-        planner::GlobalPlanner::SharedPtr global_planner_;
-        map::MapServer::SharedPtr map_server_;
+        planner::GlobalPlanner::SharedPtr globalPlanner_;
+        bool isMapLoaded_;
 
     public:
         /**
@@ -108,7 +107,7 @@ class PlannerWorker final : public QObject
          * in pixel/grid coordinates. On success, emits @ref planReady with the full path.
          * On failure (I/O error, no path, exceptions), emits @ref planError with a message.
          *
-         * @param mapPath Absolute or relative path to the map image file.
+         * @param driveMap Map for Driving.
          * @param sx Start X in pixels (grid column).
          * @param sy Start Y in pixels (grid row).
          * @param gx Goal  X in pixels (grid column).
@@ -119,7 +118,7 @@ class PlannerWorker final : public QObject
          *
          * @note This slot is intended to be invoked via a queued connection from another thread.
          */
-        void plan(const QString &mapPath, double sx, double sy, double gx, double gy);
+        void plan(const cv::Mat &driveMap, double sx, double sy, double gx, double gy);
 
     signals:
         /**

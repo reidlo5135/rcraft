@@ -9,7 +9,6 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-
 #define COLOR_BG "green"
 #define COLOR_OBSTACLE "red"
 #define COLOR_START "magenta"
