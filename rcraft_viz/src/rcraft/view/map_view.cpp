@@ -39,7 +39,7 @@ MapView::MapView(MapViewModel *viewModel, QWidget *parent)
     this->setDefaultRobotUnit();
     this->setDefaultGoalUnit();
     this->setPlannerThread();
-    this->setQConnected();
+    this->setQConnection();
 
     this->startPlannerThread();
     qRegisterMetaType<cv::Mat>("cv::Mat");
@@ -131,7 +131,7 @@ void MapView::setDefaultRobotUnit()
  * - PlannerWorker::planReady -> MapView::onPlanReady() (queued)
  * - PlannerWorker::planError -> MapView::onPlanError() (queued)
  */
-void MapView::setQConnected()
+void MapView::setQConnection()
 {
     connect(this->mapLoadButton_, &QPushButton::clicked, this->viewModel_, &MapViewModel::handleMapSelect);
     connect(this->viewModel_, &MapViewModel::mapUpdated, this, &MapView::onMapUpdated);

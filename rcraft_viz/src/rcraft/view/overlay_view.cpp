@@ -25,7 +25,7 @@ OverlayView::OverlayView(QWidget *parent)
     , mapView_(std::make_unique<MapView>(this->mapViewModel_.get()))
 {
     this->setScreen();
-    this->setQConnected();
+    this->setQConnection();
     this->setDefaultLayout();
 }
 
@@ -70,7 +70,7 @@ void OverlayView::setScreen()
  *
  * These are direct connections (same thread), suitable for GUI usage.
  */
-void OverlayView::setQConnected()
+void OverlayView::setQConnection()
 {
     connect(this->mapViewModel_.get(), &MapViewModel::mapUpdated, this->mapView_.get(), &MapView::onMapUpdated);
     connect(this->mapViewModel_.get(), &MapViewModel::resolutionChanged, this->mapView_.get(), &MapView::onResolutionChanged);

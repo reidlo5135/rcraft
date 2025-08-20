@@ -93,7 +93,7 @@ namespace rcraft::viz
          * - Connects planner signals to @ref onPlanReady / @ref onPlanError.
          * - Connects the "Load Map" button to the model's map selection handler.
          */
-        void setQConnected();
+        void setQConnection();
 
         /**
          * @brief Create the planner worker and move it to a dedicated @c QThread.

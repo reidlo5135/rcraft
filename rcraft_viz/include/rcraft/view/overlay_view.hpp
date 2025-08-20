@@ -68,7 +68,7 @@ namespace rcraft::viz
          * Wires actions like "Load Map" to the model's handler and ensures map update
          * signals propagate to the view. Intended to be invoked during construction.
          */
-        void setQConnected();
+        void setQConnection();
 
         /**
          * @brief Install a simple layout and insert the @ref mapView_ widget.
