@@ -19,7 +19,6 @@ namespace rcraft::map
     class MapServer final
     {
     private:
-        MapConverter::UniquePtr map_converter_;
         cv::Mat optimization(const cv::Mat &map, const std::string &ext);
 
     public:

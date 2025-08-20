@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <opencv2/opencv.hpp>
 
+
 namespace fs = std::filesystem;
 
 namespace rcraft::map
@@ -16,7 +17,7 @@ namespace rcraft::map
         explicit MapSaver();
         virtual ~MapSaver();
 
-        void save(const cv::Mat &map, const std::string &path);
+        static void save(const cv::Mat &map, const std::string &path);
 
     public:
         using SharedPtr = std::shared_ptr<MapSaver>;

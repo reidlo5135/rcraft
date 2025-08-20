@@ -2,14 +2,11 @@
 
 using namespace rcraft::map;
 
-MapServer::MapServer()
-    : map_converter_(nullptr)
-{
-}
-
+MapServer::MapServer() = default;
 MapServer::~MapServer() = default;
 
-cv::Mat MapServer::load_map(const std::string &map_file_path)
+cv::Mat
+MapServer::load_map(const std::string &map_file_path)
 {
     cv::Mat raw_map = cv::Mat();
     std::cout << "[INFO][MapServer] LoadMap map file path : " << map_file_path << '\n';
@@ -71,15 +68,15 @@ cv::Mat MapServer::load_map(const std::string &map_file_path)
     return optimized_map;
 }
 
-cv::Mat MapServer::optimization(const cv::Mat &map, const std::string &ext)
+cv::Mat
+MapServer::optimization(const cv::Mat &map, const std::string &ext)
 {
     cv::Mat optimized_map = cv::Mat();
-    this->map_converter_ = std::make_unique<MapConverter>();
 
     if (ext != EXT_PGM)
     {
         std::cout << "[INFO][MapServer] Optimization Color2Gray" << '\n';
-        optimized_map = this->map_converter_->color2gray(map);
+        optimized_map = MapConverter::color2gray(map);
     }
     else
     {
@@ -88,11 +85,12 @@ cv::Mat MapServer::optimization(const cv::Mat &map, const std::string &ext)
 
     std::cout << "[INFO][MapServer] Optimization Map size : " << optimized_map.size << '\n';
 
-    MapSaver::SharedPtr map_saver = std::make_shared<MapSaver>();
-    map_saver->save(optimized_map, "C:/mn_ws/rcraft/rcraft_map_server/maps/drive_map.bmp");
+    optimized_map = MapConverter::obstacle_inflation(optimized_map);
 
-    const int &w = optimized_map.cols;
-    const int &h = optimized_map.rows;
+#ifdef _WIN32
+    // temp
+    MapSaver::save(optimized_map, "C:/mn_ws/rcraft/rcraft_map_server/maps/drive_map.bmp");
+#endif
 
     return optimized_map;
 }

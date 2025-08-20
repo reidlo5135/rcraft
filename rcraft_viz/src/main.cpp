@@ -20,12 +20,12 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    QIcon appIcon(":/rcraft_viz/resource/image/robot-solid-full.ico");
+    app.setWindowIcon(appIcon);
 
-    // Create the main window and display it.
-    rcraft::viz::MainWindow::UniquePtr window =
-        std::make_unique<rcraft::viz::MainWindow>();
+    rcraft::viz::MainWindow::UniquePtr window = std::make_unique<rcraft::viz::MainWindow>();
+    window->setWindowIcon(appIcon);
     window->show();
 
-    // Enter Qt's event loop.
     return app.exec();
 }

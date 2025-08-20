@@ -38,7 +38,6 @@ cv::Mat MapConverter::color2gray(const cv::Mat &map)
     std::vector<cv::Mat> ch;
     cv::split(hsv, ch); // ch[1] = S
 
-    const int S_MIN = 90, V_MIN = 60;
     if (cv::countNonZero(ch[1] >= S_MIN) == 0)
     {
         return gray;
@@ -51,12 +50,13 @@ cv::Mat MapConverter::color2gray(const cv::Mat &map)
         return m;
     };
 
-    cv::Mat m_green  = in_range_hsv({40,  S_MIN, V_MIN}, {85, 255, 255});  // 초록
-    cv::Mat m_yellow = in_range_hsv({20,  S_MIN, V_MIN}, {34, 255, 255});  // 노랑 (상한 34)
-    cv::Mat m_magenta= in_range_hsv({140, S_MIN, V_MIN}, {165,255, 255});  // 마젠타
+    cv::Mat m_green  = in_range_hsv({40,  S_MIN, V_MIN}, {85, 255, 255});
+    cv::Mat m_yellow = in_range_hsv({20,  S_MIN, V_MIN}, {34, 255, 255});
+    cv::Mat m_magenta= in_range_hsv({140, S_MIN, V_MIN}, {165,255, 255});
     cv::Mat m_red1   = in_range_hsv({0,   S_MIN, V_MIN}, {10, 255, 255});
     cv::Mat m_red2   = in_range_hsv({170, S_MIN, V_MIN}, {179,255, 255});
-    cv::Mat m_red; cv::bitwise_or(m_red1, m_red2, m_red);
+    cv::Mat m_red;
+    cv::bitwise_or(m_red1, m_red2, m_red);
 
     cv::Mat k = cv::getStructuringElement(cv::MORPH_ELLIPSE, {3,3});
     cv::morphologyEx(m_green,  m_green,  cv::MORPH_OPEN, k);
@@ -68,8 +68,7 @@ cv::Mat MapConverter::color2gray(const cv::Mat &map)
 
     cv::Mat m_my;
     cv::bitwise_or(m_magenta, m_yellow, m_my);
-    out.setTo(128, m_my);
-
+    out.setTo(200, m_my);
     out.setTo(255, m_green);
 
     cv::Mat handled;
@@ -77,6 +76,30 @@ cv::Mat MapConverter::color2gray(const cv::Mat &map)
     cv::bitwise_or(handled, m_red, handled);
     cv::Mat inv; cv::bitwise_not(handled, inv);
     gray.copyTo(out, inv);
+
+    return out;
+}
+
+cv::Mat
+MapConverter::obstacle_inflation(const cv::Mat &map)
+{
+    CV_Assert(map.type() == CV_8UC1);
+
+    cv::Mat obstacle_mask;
+    cv::inRange(map, 0, OBSTACLE_MAX, obstacle_mask);
+
+    cv::Mat kernel = cv::getStructuringElement(
+        cv::MORPH_ELLIPSE, cv::Size(2 * RADIUS + 1, 2 * RADIUS + 1));
+
+    cv::Mat dilated_mask;
+    cv::dilate(obstacle_mask, dilated_mask, kernel);
+
+    cv::Mat inflated_only;
+    cv::subtract(dilated_mask, obstacle_mask, inflated_only);
+
+    cv::Mat out = map.clone();
+    out.setTo(0, obstacle_mask);
+    out.setTo(64, inflated_only);
 
     return out;
 }

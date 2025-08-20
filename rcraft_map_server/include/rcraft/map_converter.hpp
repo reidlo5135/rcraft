@@ -14,6 +14,11 @@
 #define COLOR_START "magenta"
 #define COLOR_GOAL "yellow"
 
+constexpr static int S_MIN = 90;
+constexpr static int V_MIN = 60;
+constexpr static int OBSTACLE_MAX = 32;
+constexpr static int RADIUS = 10;
+
 namespace rcraft::map
 {
     class MapConverter final
@@ -24,7 +29,9 @@ namespace rcraft::map
     public:
         explicit MapConverter();
         virtual ~MapConverter();
-        cv::Mat color2gray(const cv::Mat &map);
+
+        static cv::Mat color2gray(const cv::Mat &map);
+        static cv::Mat obstacle_inflation(const cv::Mat &map);
 
     public:
         using SharedPtr = std::shared_ptr<MapConverter>;
